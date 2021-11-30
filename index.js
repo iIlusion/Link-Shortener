@@ -26,22 +26,20 @@ import axios from 'axios'
 
 ext.run();
 
-ext.interceptByNameOrHash(HDirection.TOSERVER, 'Chat', (hMessage) => {
+ext.interceptByNameOrHash(HDirection.TOSERVER, 'Chat', async (hMessage) => {
   let hPacket = hMessage.getPacket()
   let message = hPacket.readString();
 
-  if (message.startsWith("!")) {
-    hMessage.setBlocked(true);
-
-    if (message.startsWith("!short")) {
-      shorten(message.replace("!short", ''))
-    }
+  if (detectURLs(message)) {
+    hMessage.setBlocked(true)
+    shorten(message)
   }
 })
 
   async function shorten(message) {
 
     let url = detectURLs(message)
+    if (!url) return
     let shortenedUrl = await axios.post('https://abre.ai/_/generate', {
       "url_translation": {
         "url": url[0],
@@ -54,7 +52,7 @@ ext.interceptByNameOrHash(HDirection.TOSERVER, 'Chat', (hMessage) => {
     }
   })
     .then((response) => response.data.data.attributes.shortenedUrl.replace(/(^\w+:|^)\/\//, ''))
-    .catch((error) => console.log(error.response))
+    .catch((error) => createMessage(error.response.data.errors))
 
     let newMessage = message.replace(url, `\`${shortenedUrl.replace(".", " ")}\``)
 
@@ -66,4 +64,11 @@ ext.interceptByNameOrHash(HDirection.TOSERVER, 'Chat', (hMessage) => {
   function detectURLs(message) {
     var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
     return message.match(urlRegex)
+  }
+
+  async function createMessage(text) {
+    let messagePacket = new HPacket(
+      `{in:NotificationDialog}{s:""}{i:3}{s:"display"}{s:"BUBBLE"}{s:"message"}{s:"${text}"}{s:"image"}{s:"https://raw.githubusercontent.com/sirjonasxx/G-ExtensionStore/repo/1.5.1/store/extensions/ListeningMotto/icon.png"}`
+    );
+    ext.sendToClient(messagePacket);
   }
