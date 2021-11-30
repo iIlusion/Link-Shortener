@@ -44,20 +44,19 @@ ext.interceptByNameOrHash(HDirection.TOSERVER, 'Chat', (hMessage) => {
     let url = detectURLs(message)
     let shortenedUrl = await axios.post('https://abre.ai/_/generate', {
       "url_translation": {
-        "url": "https://www.youtube.com/watch?v=K_A-CpRbcGM",
+        "url": url[0],
         "token": ""
       }
     },
     {headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({url_translation: {url: url, token: ''} })
+    }
   })
     .then((response) => response.data.data.attributes.shortenedUrl.replace(/(^\w+:|^)\/\//, ''))
     .catch((error) => console.log(error.response))
 
-    let newMessage = message.replace(url, shortenedUrl.replace(".", " "))
+    let newMessage = message.replace(url, `\`${shortenedUrl.replace(".", " ")}\``)
 
     let messagePacket = new HPacket(`{out:Chat}{s:"${newMessage}"}{i:0}{i:0}`)
     ext.sendToServer(messagePacket)
