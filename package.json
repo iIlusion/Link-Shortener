@@ -1,0 +1,17 @@
+{
+  "name": "linkshortner",
+  "version": "0.0.1",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --experimental-json-modules index.js --port 9092"
+  },
+  "author": "Lxx",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.24.0",
+    "gnode-api": "^0.0.1-beta.24",
+    "node-processlist": "^1.0.2"
+  }
+}
