@@ -61,9 +61,54 @@ ext.interceptByNameOrHash(HDirection.TOSERVER, 'Chat', async (hMessage) => {
 
   }
 
+ext.interceptByNameOrHash(HDirection.TOCLIENT, 'Chat', onChat);
+
+function onChat(hMessage) {
+    let packet = hMessage.getPacket();
+    let msgIndex = packet.readInteger();
+    let msg = packet.readString();
+    let int1 = packet.readInteger();
+    let int2 = packet.readInteger();
+    packet.readInteger();
+    let int3 = packet.readInteger();
+
+    let shortenedUrls = detectShortenedURLs(msg);
+    if(shortenedUrls == null) return;
+    hMessage.setBlocked(true);
+
+    let replacingPacket = new HPacket(packet.headerId())
+        .appendInt(msgIndex);
+
+    for(let i = 0; i < shortenedUrls.length; i++) {
+        msg = msg.replace(shortenedUrls[i], `{${i}}`);
+    }
+
+    replacingPacket.appendString(msg)
+        .appendInt(int1)
+        .appendInt(int2)
+        .appendInt(shortenedUrls.length);
+
+    for(let url of shortenedUrls) {
+        url = url
+            .replaceAll('`', '')
+            .replace(' ', '.');
+        replacingPacket.appendString("")
+            .appendString(`https://${url}`)
+            .appendBoolean(true);
+    }
+
+    replacingPacket.appendInt(int3);
+    ext.sendToClient(replacingPacket);
+}
+
   function detectURLs(message) {
     var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
     return message.match(urlRegex)
+  }
+
+  function detectShortenedURLs(message) {
+    const shortenedUrlRegex = /\`abre [^ ]+\`/g;
+    return message.match(shortenedUrlRegex);
   }
 
   async function createMessage(text) {
