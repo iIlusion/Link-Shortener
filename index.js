@@ -34,16 +34,6 @@ ext.interceptByNameOrHash(HDirection.TOSERVER, 'Chat', async (hMessage) => {
     hMessage.setBlocked(true)
     shorten(message)
   }
-});
-
-ext.interceptByNameOrHash(HDirection.TOSERVER, 'Chat', async (hMessage) => {
-  let hPacket = hMessage.getPacket()
-  let message = hPacket.readString();
-
-  if (detectURLs(message)) {
-    hMessage.setBlocked(true)
-    shorten(message)
-  }
 })
 
   async function shorten(message) {
