@@ -103,7 +103,7 @@ function onChat(hMessage) {
             .replaceAll('`', '')
             .replace(' ', '.');
         replacingPacket.appendString("")
-            .appendString(url)
+            .appendString(`https://${url}`)
             .appendBoolean(true);
     }
 
